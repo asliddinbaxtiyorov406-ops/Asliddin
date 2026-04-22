@@ -1,0 +1,14 @@
+[Unit]
+Description=MUROJAT BOT Telegram service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/murojat-bot
+ExecStart=/opt/murojat-bot/.venv/bin/python /opt/murojat-bot/main.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
