@@ -122,11 +122,11 @@ py main.py
 
 ## Vercelga Deploy
 
-Endi loyiha Vercel uchun `api/index.py` webhook entrypoint bilan tayyor:
+Endi loyiha Vercel uchun webhook entrypoint bilan tayyor (`app.py` -> `api/index.py`):
 
-- Telegram webhook endpoint: `/api/telegram/webhook`
-- Health endpoint: `/api/healthz`
-- Webhook setup endpoint: `/api/setup-webhook` (`X-Setup-Token` header bilan)
+- Telegram webhook endpoint: `/telegram/webhook` (alias: `/api/telegram/webhook`)
+- Health endpoint: `/healthz` (alias: `/api/healthz`)
+- Webhook setup endpoint: `/setup-webhook` (alias: `/api/setup-webhook`, `X-Setup-Token` header bilan)
 
 Tartib:
 
@@ -137,7 +137,7 @@ Tartib:
 5. Deploy tugagach webhookni o'rnating:
 
 ```bash
-curl -X POST "https://<your-project>.vercel.app/api/setup-webhook" \
+curl -X POST "https://<your-project>.vercel.app/setup-webhook" \
   -H "X-Setup-Token: <WEBHOOK_SETUP_TOKEN>"
 ```
 
@@ -145,7 +145,7 @@ Yoki `WEBHOOK_SETUP_TOKEN` ishlatmasdan ham Telegram API orqali qo'lda o'rnatish
 
 ```bash
 curl -X POST "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
-  -d "url=https://<your-project>.vercel.app/api/telegram/webhook" \
+  -d "url=https://<your-project>.vercel.app/telegram/webhook" \
   -d "secret_token=<WEBHOOK_SECRET_TOKEN>"
 ```
 

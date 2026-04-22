@@ -20,6 +20,12 @@ WEBHOOK_URL = (os.getenv("WEBHOOK_URL") or "").strip()
 if not WEBHOOK_PATH.startswith("/"):
     WEBHOOK_PATH = f"/{WEBHOOK_PATH}"
 
+WEBHOOK_PATH_ALIAS = None if WEBHOOK_PATH.startswith("/api/") else f"/api{WEBHOOK_PATH}"
+SETUP_WEBHOOK_PATH = "/setup-webhook"
+SETUP_WEBHOOK_PATH_ALIAS = "/api/setup-webhook"
+HEALTHZ_PATH = "/healthz"
+HEALTHZ_PATH_ALIAS = "/api/healthz"
+
 bot = Bot(token=BOT_TOKEN)
 init_lock = asyncio.Lock()
 is_initialized = False
@@ -78,7 +84,13 @@ async def root() -> dict[str, object]:
     return {"ok": True, "mode": "webhook"}
 
 
-@app.get("/healthz")
+@app.get("/api")
+async def root_api() -> dict[str, object]:
+    return await root()
+
+
+@app.get(HEALTHZ_PATH)
+@app.get(HEALTHZ_PATH_ALIAS)
 async def healthz() -> dict[str, object]:
     await ensure_initialized()
     return {"ok": True}
@@ -111,7 +123,8 @@ async def telegram_webhook(
     return {"ok": True}
 
 
-@app.post("/setup-webhook")
+@app.post(SETUP_WEBHOOK_PATH)
+@app.post(SETUP_WEBHOOK_PATH_ALIAS)
 async def setup_webhook(
     request: Request,
     x_setup_token: str | None = Header(default=None),
@@ -135,9 +148,14 @@ async def setup_webhook(
     }
 
 
-@app.delete("/setup-webhook")
+@app.delete(SETUP_WEBHOOK_PATH)
+@app.delete(SETUP_WEBHOOK_PATH_ALIAS)
 async def delete_webhook(x_setup_token: str | None = Header(default=None)) -> dict[str, object]:
     ensure_setup_access(x_setup_token)
     await ensure_initialized()
     await bot.delete_webhook(drop_pending_updates=False)
     return {"ok": True}
+
+
+if WEBHOOK_PATH_ALIAS:
+    app.add_api_route(WEBHOOK_PATH_ALIAS, telegram_webhook, methods=["POST"])
