@@ -1,8 +1,6 @@
 .env
+.env.*
 __pycache__/
-murojat_bot.db
 .venv/
-*.pyc
-
-.vercel
+murojat_bot.db
 uv.lock

@@ -49,6 +49,8 @@ REGION_LEADERS_ENV_PATH = (os.getenv("REGION_LEADERS_ENV_PATH") or "region_leade
 FSM_STORAGE_BACKEND = (os.getenv("FSM_STORAGE_BACKEND") or "auto").strip().lower()
 FSM_MONGO_DB_NAME = (os.getenv("FSM_MONGO_DB_NAME") or f"{MONGODB_DB_NAME}_fsm").strip()
 FSM_MONGO_COLLECTION_NAME = (os.getenv("FSM_MONGO_COLLECTION_NAME") or "states_and_data").strip()
+IS_VERCEL_RUNTIME = bool(os.getenv("VERCEL"))
+SQLITE_PATH = (os.getenv("SQLITE_PATH") or "").strip()
 ALLOW_SHARED_REGION_ADMINS = (os.getenv("ALLOW_SHARED_REGION_ADMINS") or "").strip().lower() in {
     "1",
     "true",
@@ -71,7 +73,7 @@ if not MONGODB_DB_NAME:
 ADMIN_USER_ID = int(ADMIN_ID) if ADMIN_ID else None
 
 
-LEGACY_SQLITE_PATH = "murojat_bot.db"
+LEGACY_SQLITE_PATH = SQLITE_PATH or ("/tmp/murojat_bot.db" if IS_VERCEL_RUNTIME else "murojat_bot.db")
 mongo_client: MongoClient | None = None
 mongo_db = None
 users_collection = None
@@ -1631,6 +1633,9 @@ def get_mongo_collections():
 
 @contextmanager
 def get_sqlite_connection():
+    sqlite_dir = os.path.dirname(os.path.abspath(LEGACY_SQLITE_PATH))
+    if sqlite_dir:
+        os.makedirs(sqlite_dir, exist_ok=True)
     conn = sqlite3.connect(
         LEGACY_SQLITE_PATH,
         timeout=SQLITE_CONNECT_TIMEOUT_SECONDS,
