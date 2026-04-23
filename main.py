@@ -245,9 +245,13 @@ def create_fsm_storage():
         logging.info("FSM storage sifatida MemoryStorage ishlatildi (auto/local mode).")
         return MemoryStorage()
 
+    effective_mongo_uri = build_effective_mongo_uri(MONGODB_URI)
+    probe_client = None
     try:
+        probe_client = MongoClient(effective_mongo_uri, serverSelectionTimeoutMS=5000)
+        probe_client.admin.command("ping")
         storage = PyMongoStorage.from_url(
-            MONGODB_URI,
+            effective_mongo_uri,
             connection_kwargs={"serverSelectionTimeoutMS": 5000},
             db_name=FSM_MONGO_DB_NAME,
             collection_name=FSM_MONGO_COLLECTION_NAME,
@@ -263,6 +267,9 @@ def create_fsm_storage():
             raise RuntimeError(f"FSM storage uchun MongoDB ishga tushmadi: {error}") from error
         logging.warning("Mongo FSM storage ishga tushmadi, MemoryStorage ishlatiladi: %s", error)
         return MemoryStorage()
+    finally:
+        if probe_client is not None:
+            probe_client.close()
 
 
 dp = Dispatcher(storage=create_fsm_storage())
